@@ -53,4 +53,20 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { criarFuncionario, loginUserCtrl };
+const handleRefreshToken = asyncHandler(async(req,res) => {
+  const cookie = req.cookies;
+  if(!cookie?.refreshToken) throw new Error("Não Possui Refresh Token nos Cookies");
+  const refreshToken = cookie.refreshToken
+  const funcionario = await Funcionario.findOne({ refreshToken });
+  if(!funcionario) throw new Error("Não possui Refresh Token no DB, ou não encontramos");
+  jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
+    if(err || funcionario.id !== decoded.id) {
+      throw new Error("Há algo errado com o Token de Atualização");
+    }
+    const acessToken = generateToken(funcionario?._id);
+    res.json({acessToken})
+  })
+  
+})
+
+module.exports = { criarFuncionario, loginUserCtrl, handleRefreshToken };

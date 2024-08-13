@@ -105,6 +105,9 @@ var funcionarioSchema = new mongoose.Schema({
   observacoes: {
     type: String,
   },
+  refreshToken: {
+    type: String,
+  },
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
