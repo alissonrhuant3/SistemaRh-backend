@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 
 var funcionarioSchema = new mongoose.Schema({
   cod_empresa: {type: mongoose.Schema.Types.ObjectId, ref: "Empresa"},
@@ -102,9 +104,27 @@ var funcionarioSchema = new mongoose.Schema({
   },
   observacoes: {
     type: String,
-  }
+  },
+  passwordChangedAt: Date,
+  passwordResetToken: String,
+  passwordResetExpires: Date,
 },{
   timestamps: true
 });
+
+funcionarioSchema.pre("save", async function (next) {
+  if(!this.isModified("password")) {
+    next();
+  }
+  const salt = await bcrypt.genSaltSync(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+funcionarioSchema.methods.isPasswordMatched = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+}
+funcionarioSchema.methods.createPasswordResetToken = async function () {
+  
+};
 
 module.exports = mongoose.model("Funcionario", funcionarioSchema);
