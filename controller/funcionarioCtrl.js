@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const Trilha = require("../models/trilhaFuncionarioModel");
 const asyncHandler = require("express-async-handler");
 const { generateToken } = require("../config/jwtToken");
+const validateMongoDbId = require("../utils/validateMongodbId");
 
 const criarFuncionario = asyncHandler(async (req, res) => {
   const cpf = req.body.cpf;
@@ -23,6 +24,69 @@ const criarFuncionario = asyncHandler(async (req, res) => {
   }
 });
 
+const updateFuncionario = asyncHandler(async (req, res) => {
+  const {_id} = req.funcionario;
+
+  const {id} = req.params;
+  validateMongoDbId(id);
+  try {
+    const updateFuncionario = await Funcionario.findByIdAndUpdate({_id: id}, {
+      perfil: req?.body?.perfil,
+      cod_gestor: req?.body?.cod_gestor,
+      nome: req?.body?.nome,
+      cpf: req?.body?.cpf,
+      rg: req?.body?.rg,
+      data_nascimento: req?.body?.data_nascimento,
+      endereco: req?.body?.endereco,
+      complemento: req?.body?.complemento,
+      bairro: req?.body?.bairro,
+      cep: req?.body?.cep,
+      cidade: req?.body?.cidade,
+      uf: req?.body?.uf,
+      telefone: req?.body?.telefone,
+      email: req?.body?.email,
+      valor_remuneracao: req?.body?.valor_remuneracao,
+      valor_horaextra: req?.body?.valor_horaextra,
+      horaextra: req?.body?.horaextra,
+      nome_banco: req?.body?.nome_banco,
+      numero_banco: req?.body?.numero_banco,
+      agencia: req?.body?.agencia,
+      conta: req?.body?.conta,
+      tipo_conta: req?.body?.tipo_conta,
+      pix: req?.body?.pix,
+      horario1: req?.body?.horario1,
+      horario2: req?.body?.horario2,
+      observacoes: req?.body?.observacoes,
+    }, {
+      new: true,
+    });
+    await Trilha.create({
+       coduseralteracao: _id,
+       funcionario: id,
+       datahoraalteracao: updateFuncionario.updatedAt,
+     });
+    res.json(updateFuncionario);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const deletarFuncionario = asyncHandler(async(req,res) => {
+  const {_id} = req.funcionario;
+  const {id} = req.params;
+  validateMongoDbId(id)
+  try {
+    const deleteFuncionario = await Funcionario.findByIdAndDelete(id);
+    await Trilha.create({
+      coduserexclusao: _id,
+      datahoraexclusao: new Date(),
+    })
+    res.json(deleteFuncionario)
+  } catch (error) {
+    throw new Error(error);
+  }
+})
+
 const loginUserCtrl = asyncHandler(async (req, res) => {
   const { cpf, password } = req.body;
   const findUser = await Funcionario.findOne({ cpf });
@@ -39,7 +103,7 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
     );
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      maxAge: 24*60*60*1000,
+      maxAge: 24 * 60 * 60 * 1000,
     });
     res.json({
       _id: findUser?._id,
@@ -49,24 +113,58 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
       token: generateToken(findUser?._id),
     });
   } else {
-    throw new Error("Credenciais inválidas!")
+    throw new Error("Credenciais inválidas!");
   }
 });
 
-const handleRefreshToken = asyncHandler(async(req,res) => {
+const handleRefreshToken = asyncHandler(async (req, res) => {
   const cookie = req.cookies;
-  if(!cookie?.refreshToken) throw new Error("Não Possui Refresh Token nos Cookies");
-  const refreshToken = cookie.refreshToken
+  if (!cookie?.refreshToken)
+    throw new Error("Não Possui Refresh Token nos Cookies");
+  const refreshToken = cookie.refreshToken;
   const funcionario = await Funcionario.findOne({ refreshToken });
-  if(!funcionario) throw new Error("Não possui Refresh Token no DB, ou não encontramos");
+  if (!funcionario)
+    throw new Error("Não possui Refresh Token no DB, ou não encontramos");
   jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
-    if(err || funcionario.id !== decoded.id) {
+    if (err || funcionario.id !== decoded.id) {
       throw new Error("Há algo errado com o Token de Atualização");
     }
     const acessToken = generateToken(funcionario?._id);
-    res.json({acessToken})
-  })
-  
-})
+    res.json({ acessToken });
+  });
+});
 
-module.exports = { criarFuncionario, loginUserCtrl, handleRefreshToken };
+const logout = asyncHandler(async (req, res) => {
+  const cookie = req.cookies;
+  if (!cookie?.refreshToken)
+    throw new Error("Não há Atualização de token nos cookies");
+  const refreshToken = cookie.refreshToken;
+  const funcionario = await Funcionario.findOne({ refreshToken });
+  if (!funcionario) {
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+    });
+    return res.sendStatus(204); // bloqueado
+  }
+  await Funcionario.findOneAndUpdate(
+    { refreshToken },
+    {
+      refreshToken: "",
+    }
+  );
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: true,
+  });
+  return res.sendStatus(204); // bloqueado
+});
+
+module.exports = {
+  criarFuncionario,
+  updateFuncionario,
+  loginUserCtrl,
+  handleRefreshToken,
+  logout,
+  deletarFuncionario,
+};

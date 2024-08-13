@@ -3,23 +3,18 @@ const mongoose = require("mongoose");
 var trilhaFuncionarioSchema = new mongoose.Schema({
   coduserinclusao: {
     type: String,
-    required: true,
   },
   datahorainclusao: {
     type: Date,
-    required: true,
   },
   coduseralteracao: {
-    type: Number,
+    type: String,
   },
   datahoraalteracao: {
     type: Date,
   },
   coduserexclusao: {
-    type: Number,
-  },
-  coduserexclusao: {
-    type: Number,
+    type: String,
   },
   datehoraexclusao: {
     type: Date,
