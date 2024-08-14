@@ -4,6 +4,7 @@ var empresaSchema = new mongoose.Schema({
   cnpj: {
     type: Number,
     required: true,
+    unique: true,
   },
   razaosocial: {
     type: String,
@@ -12,6 +13,7 @@ var empresaSchema = new mongoose.Schema({
   inscricaoestadual: {
     type: Number,
     required: true,
+    unique: true,
   },
   endereco: {
     type: String,

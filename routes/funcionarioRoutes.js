@@ -6,6 +6,8 @@ const {
   logout,
   updateFuncionario,
   deletarFuncionario,
+  buscarFuncionarios,
+  buscarFuncionario,
 } = require("../controller/funcionarioCtrl");
 const router = express.Router();
 const { authMiddleware } = require("../middlewares/authMiddleware");
@@ -13,6 +15,8 @@ const { authMiddleware } = require("../middlewares/authMiddleware");
 router.post("/registrar", criarFuncionario);
 router.post("/login", loginUserCtrl);
 
+router.get("/",authMiddleware, buscarFuncionarios)
+router.get("/:id", buscarFuncionario)
 router.get("/refresh", handleRefreshToken);
 router.get("/logout", logout);
 

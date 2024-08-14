@@ -2,7 +2,7 @@ const Funcionario = require("../models/funcionarioModel");
 const { generateRefreshToken } = require("../config/refreshToken");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
-const Trilha = require("../models/trilhaFuncionarioModel");
+const Trilha = require("../models/trilhas/trilhaFuncionarioModel");
 const asyncHandler = require("express-async-handler");
 const { generateToken } = require("../config/jwtToken");
 const validateMongoDbId = require("../utils/validateMongodbId");
@@ -74,12 +74,12 @@ const updateFuncionario = asyncHandler(async (req, res) => {
 const deletarFuncionario = asyncHandler(async(req,res) => {
   const {_id} = req.funcionario;
   const {id} = req.params;
+  
   validateMongoDbId(id)
   try {
     const deleteFuncionario = await Funcionario.findByIdAndDelete(id);
     await Trilha.create({
       coduserexclusao: _id,
-      datahoraexclusao: new Date(),
     })
     res.json(deleteFuncionario)
   } catch (error) {
@@ -114,6 +114,26 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
     });
   } else {
     throw new Error("Credenciais inválidas!");
+  }
+});
+
+const buscarFuncionarios = asyncHandler(async(req,res) => {
+  try {
+    const funcionarios = await Funcionario.find();
+    res.json(funcionarios);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const buscarFuncionario = asyncHandler(async(req,res) => {
+  const {id} = req.params;
+  validateMongoDbId(id);
+  try {
+    const funcionario = await Funcionario.findById(id).populate("cod_empresa");
+    res.json(funcionario);
+  } catch (error) {
+    throw new Error(error)
   }
 });
 
@@ -167,4 +187,6 @@ module.exports = {
   handleRefreshToken,
   logout,
   deletarFuncionario,
+  buscarFuncionarios,
+  buscarFuncionario,
 };

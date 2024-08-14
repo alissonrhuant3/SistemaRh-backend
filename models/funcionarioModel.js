@@ -17,10 +17,12 @@ var funcionarioSchema = new mongoose.Schema({
   cpf: {
     type: Number,
     required: true,
+    unique: true,
   },
   rg: {
     type: Number,
     required: true,
+    unique: true,
   },
   data_nascimento: {
     type: Date,
@@ -44,7 +46,6 @@ var funcionarioSchema = new mongoose.Schema({
   cidade: {
     type: String,
     required: true,
-
   },
   uf: {
     type: String,
@@ -53,10 +54,12 @@ var funcionarioSchema = new mongoose.Schema({
   telefone: {
     type: Number,
     required: true,
+    unique: true,
   },
   email: {
     type: String,
     required: true,
+    unique: true,
   }, 
   data_admissao: {
     type: Date,
