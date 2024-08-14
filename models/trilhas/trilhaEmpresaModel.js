@@ -6,19 +6,19 @@ var trilhaEmpresaSchema = new mongoose.Schema({
     type: Date,
   },
   coduseralteracao: {
-    type: { type: mongoose.Schema.Types.ObjectId, ref: "Funcionario" },
+    type: mongoose.Schema.Types.ObjectId, ref: "Funcionario" ,
   },
   datahoraalteracao: {
     type: Date,
   },
   coduserexclusao: {
-    type: { type: mongoose.Schema.Types.ObjectId, ref: "Funcionario" },
+    type: mongoose.Schema.Types.ObjectId, ref: "Funcionario",
   },
   datehoraexclusao: {
     type: Date,
   },
-  empresa: { 
-    type: String 
+  empresa: {
+    type: String,
   },
 });
 
