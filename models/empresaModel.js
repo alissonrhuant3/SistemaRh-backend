@@ -55,7 +55,10 @@ var empresaSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  
+  projetos: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Projeto"
+  }],
 }, {
   timestamps: true,
 })

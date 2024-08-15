@@ -8,6 +8,7 @@ const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const empresaRouter = require("./routes/empresaRoutes");
 const funcionarioRouter = require("./routes/funcionarioRoutes");
+const projetoRouter = require("./routes/projetoRoutes");
 const { errorHandler, notFound } = require("./middlewares/errorHandler");
 dbConnect();
 
@@ -18,6 +19,7 @@ app.use(cookieParser());
 
 app.use("/api/empresa", empresaRouter);
 app.use("/api/funcionario", funcionarioRouter);
+app.use("/api/projeto", projetoRouter);
 
 app.use(notFound);
 app.use(errorHandler);

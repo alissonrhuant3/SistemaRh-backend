@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-var trilhaFuncionarioSchema = new mongoose.Schema({
+var trilhaProjetoSchema = new mongoose.Schema({
   coduserinclusao: {
     type: mongoose.Schema.Types.ObjectId, ref: "Funcionario" ,
   },
@@ -8,18 +8,18 @@ var trilhaFuncionarioSchema = new mongoose.Schema({
     type: Date,
   },
   coduseralteracao: {
-    type: mongoose.Schema.Types.ObjectId, ref: "Funcionario" ,
+    type: mongoose.Schema.Types.ObjectId, ref: "Funcionario",
   },
   datahoraalteracao: {
     type: Date,
   },
   coduserexclusao: {
-    type: mongoose.Schema.Types.ObjectId, ref: "Funcionario" ,
+     type: mongoose.Schema.Types.ObjectId, ref: "Funcionario",
   },
   datehoraexclusao: {
     type: Date,
   },
-  funcionario: { type: String, required: true},
+  projeto: { type: String, required: true },
 });
 
-module.exports = mongoose.model("Trilhafuncionario", trilhaFuncionarioSchema);
+module.exports = mongoose.model("Trilhaprojeto", trilhaProjetoSchema);

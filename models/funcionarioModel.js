@@ -9,7 +9,7 @@ var funcionarioSchema = new mongoose.Schema({
     default: "funcionario",
     enum: ["funcionario","admin","gestor","empresa/rh"]
   },
-  cod_gestor: {type: String},
+  cod_gestor: {type: mongoose.Schema.Types.ObjectId, ref: "Funcionario"},
   nome: {
     type: String,
     required: true

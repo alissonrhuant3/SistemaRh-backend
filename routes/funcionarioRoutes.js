@@ -12,13 +12,13 @@ const {
 const router = express.Router();
 const { authMiddleware } = require("../middlewares/authMiddleware");
 
-router.post("/registrar", criarFuncionario);
+router.post("/registrar",authMiddleware, criarFuncionario);
 router.post("/login", loginUserCtrl);
 
 router.get("/",authMiddleware, buscarFuncionarios)
 router.get("/:id", buscarFuncionario)
 router.get("/refresh", handleRefreshToken);
-router.get("/logout", logout);
+router.get("/logout",authMiddleware, logout);
 
 router.put("/edit-funcionario/:id", authMiddleware, updateFuncionario);
 

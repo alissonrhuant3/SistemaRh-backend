@@ -9,13 +9,13 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 
 const criarFuncionario = asyncHandler(async (req, res) => {
   const cpf = req.body.cpf;
-  const idUsu = req.body.idusuario;
+  const {_id} = req.funcionario;
   const buscaFuncionario = await Funcionario.findOne({ cpf });
   if (!buscaFuncionario) {
     const novoFuncionario = await Funcionario.create(req.body);
     await Trilha.create({
-      coduserinclusao: idUsu,
-      funcionario: novoFuncionario._id,
+      coduserinclusao: _id,
+      funcionario: novoFuncionario.nome,
       datahorainclusao: novoFuncionario.createdAt,
     });
     res.json(novoFuncionario);

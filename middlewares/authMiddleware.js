@@ -24,14 +24,34 @@ const authMiddleware = asyncHandler(async (req, res, next) => {
   }
 });
 
-// const isAdmin = asyncHandler(async (req, res, next) => {
-//   const { email } = req.user;
-//   const adminUser = await User.findOne({ email });
-//   if(adminUser.role !== "admin") {
-//     throw new Error("Você não é admin!")
-//   } else {
-//     next();
-//   }
-// });
+const isAdmin = asyncHandler(async (req, res, next) => {
+  const { cpf } = req.funcionario;
+  const adminUser = await Funcionario.findOne({ cpf });
+  if (adminUser.perfil !== "admin") {
+    throw new Error("Você não é admin!");
+  } else {
+    next();
+  }
+});
 
-module.exports = { authMiddleware };
+const isGestor = asyncHandler(async (req, res, next) => {
+  const { cpf } = req.funcionario;
+  const user = await Funcionario.findOne({ cpf });
+  if (user.perfil !== "gestor" && user.perfil !== "admin") {
+    throw new Error("Você não é Gestor!");
+  } else if (user.perfil === "gestor" || user.perfil === "admin") {
+    next();
+  }
+});
+
+const isEmpresa = asyncHandler(async (req, res, next) => {
+  const { cpf } = req.funcionario;
+  const user = await Funcionario.findOne({ cpf });
+  if (user.perfil !== "empresa/rh" && user.perfil !== "admin") {
+    throw new Error("Você não é empresa/rh!");
+  } else if (user.perfil === "empresa/rh" || user.perfil === "admin") {
+    next();
+  }
+});
+
+module.exports = { authMiddleware, isAdmin, isGestor, isEmpresa };

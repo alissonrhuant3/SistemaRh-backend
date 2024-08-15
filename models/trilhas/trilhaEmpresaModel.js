@@ -19,6 +19,7 @@ var trilhaEmpresaSchema = new mongoose.Schema({
   },
   empresa: {
     type: String,
+    required: true,
   },
 });
 
