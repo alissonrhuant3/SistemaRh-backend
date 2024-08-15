@@ -10,7 +10,7 @@ const authMiddleware = asyncHandler(async (req, res, next) => {
       if (token) {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const funcionario = await Funcionario.findById(decoded?.id);
-        req.funcionario = funcionario;
+        req.funcionario = funcionario; 
         next();
       }
     } catch (error) {

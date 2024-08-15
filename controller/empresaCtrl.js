@@ -1,4 +1,5 @@
 const Empresa = require("../models/empresaModel");
+const Projeto = require("../models/projetoModel");
 const Trilha = require("../models/trilhas/trilhaEmpresaModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
@@ -92,10 +93,22 @@ const buscarEmpresa = asyncHandler(async (req, res) => {
   }
 });
 
+const buscarProjetos = asyncHandler(async (req, res) => {
+  const {cod_empresa} = req.funcionario;
+  validateMongoDbId(cod_empresa)
+  try {
+    const projetos = await Projeto.find({empresa: cod_empresa});
+    res.json(projetos);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
 module.exports = {
   criarEmpresa,
   updateEmpresa,
   deletarEmpresa,
   buscarEmpresas,
   buscarEmpresa,
+  buscarProjetos,
 };
