@@ -18,13 +18,13 @@ const { authMiddleware, isAdmin } = require("../middlewares/authMiddleware");
 router.post("/registrar", authMiddleware, criarFuncionario);
 router.post("/login", loginUserCtrl);
 router.post(
-  "/associar-projeto/:funcionarioId",
+  "/associar-projeto/",
   authMiddleware,
   associarProjeto
 );
 
 router.get("/", authMiddleware, buscarFuncionarios);
-router.get("/todos-projetos", authMiddleware, isAdmin, buscarProjetos);
+router.get("/todos-projetos/:funcionarioId", authMiddleware, isAdmin, buscarProjetos);
 router.get("/:id", buscarFuncionario);
 router.get("/refresh", handleRefreshToken);
 router.get("/logout", authMiddleware, logout);

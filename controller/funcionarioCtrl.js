@@ -188,17 +188,18 @@ const logout = asyncHandler(async (req, res) => {
 });
 
 const buscarProjetos = asyncHandler(async (req, res) => {
+  const {funcionarioId} = req.params;
+  validateMongoDbId(funcionarioId)
   try {
-    const todosProjetos = await Projeto.find().populate("empresa");
-    res.json(todosProjetos);
+    const todosProjetosFuncionario = await Associacao.find({funcionario: funcionarioId});
+    res.json(todosProjetosFuncionario);
   } catch (error) {
     throw new Error(error);
   }
 });
 
 const associarProjeto = asyncHandler(async (req, res) => {
-  const { funcionarioId } = req.params;
-  const { projetoId } = req.body;
+  const { projetoId, funcionarioId } = req.body;
   const { _id } = req.funcionario;
   validateMongoDbId(projetoId);
   validateMongoDbId(funcionarioId);
