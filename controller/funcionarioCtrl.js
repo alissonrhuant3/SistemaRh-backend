@@ -312,19 +312,26 @@ const apontarHorarioFinalPM = asyncHandler(async (req, res) => {
   }
 });
 
-const buscarApontamentosFuncionario = asyncHandler(async(req,res) => {
-  const {funcionarioId} = req.params;
+const buscarApontamentosFuncionario = asyncHandler(async (req, res) => {
+  const { funcionarioId } = req.params;
   validateMongoDbId(funcionarioId);
   try {
-    const apontamentos = await Apontamento.find({funcionario: funcionarioId});
+    const apontamentos = await Apontamento.find({ funcionario: funcionarioId });
     res.json(apontamentos);
   } catch (error) {
     throw new Error(error);
   }
 });
 
-const aprovacaoGestor = asyncHandler(async(req,res) => {
-  
+const aprovacaoGestor = asyncHandler(async (req, res) => {
+  const { apontamentoId } = req.body;
+  validateMongoDbId(apontamentoId);
+  try {
+    const aprovacao = await Apontamento.findByIdAndUpdate({_id: apontamentoId},{gestoraprova: true},{new: true});
+    res.json(aprovacao);
+  } catch (error) {
+    throw new Error(error);
+  }
 });
 
 module.exports = {
@@ -343,5 +350,6 @@ module.exports = {
   apontarHorarioFinalAM,
   apontarHorarioInicialPM,
   apontarHorarioFinalPM,
-  buscarApontamentosFuncionario
+  buscarApontamentosFuncionario,
+  aprovacaoGestor,
 };

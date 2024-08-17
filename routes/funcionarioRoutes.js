@@ -15,7 +15,8 @@ const {
   apontarHorarioFinalAM,
   apontarHorarioInicialPM,
   apontarHorarioFinalPM,
-  buscarApontamentosFuncionario
+  buscarApontamentosFuncionario,
+  aprovacaoGestor
 } = require("../controller/funcionarioCtrl");
 const router = express.Router();
 const { authMiddleware, isAdmin } = require("../middlewares/authMiddleware");
@@ -39,6 +40,7 @@ router.get("/logout", authMiddleware, logout);
 router.put("/horafinalam", authMiddleware, apontarHorarioFinalAM)
 router.put("/horainicialpm", authMiddleware, apontarHorarioInicialPM)
 router.put("/horafinalpm", authMiddleware, apontarHorarioFinalPM)
+router.put("/gestoraprova", authMiddleware, aprovacaoGestor)
 router.put("/edit-funcionario/:id", authMiddleware, updateFuncionario);
 
 router.delete("/delete-associacao", authMiddleware, desassociarProjeto)
