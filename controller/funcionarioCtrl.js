@@ -324,9 +324,12 @@ const buscarApontamentosFuncionario = asyncHandler(async (req, res) => {
 });
 
 const aprovacaoGestor = asyncHandler(async (req, res) => {
-  const { apontamentoId } = req.body;
+  const {_id} = req.funcionario;
+  const { apontamentoId, funcionarioId } = req.body;
   validateMongoDbId(apontamentoId);
   try {
+    const verificarGestor = await Funcionario.findOne({funcionario: funcionarioId, cod_gestor: _id});
+    if(verificarGestor === null) throw new Error("Você não é gestor do funcionário")
     const aprovacao = await Apontamento.findByIdAndUpdate({_id: apontamentoId},{gestoraprova: true},{new: true});
     res.json(aprovacao);
   } catch (error) {
