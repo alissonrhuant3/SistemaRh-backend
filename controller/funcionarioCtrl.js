@@ -1,6 +1,7 @@
 const Funcionario = require("../models/funcionarioModel");
 const Associacao = require("../models/funcionarioXprojetoModel");
 const Projeto = require("../models/projetoModel");
+const Apontamento = require("../models/apontamentosModel");
 const { generateRefreshToken } = require("../config/refreshToken");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
@@ -188,10 +189,12 @@ const logout = asyncHandler(async (req, res) => {
 });
 
 const buscarProjetos = asyncHandler(async (req, res) => {
-  const {funcionarioId} = req.params;
-  validateMongoDbId(funcionarioId)
+  const { funcionarioId } = req.params;
+  validateMongoDbId(funcionarioId);
   try {
-    const todosProjetosFuncionario = await Associacao.find({funcionario: funcionarioId});
+    const todosProjetosFuncionario = await Associacao.find({
+      funcionario: funcionarioId,
+    });
     res.json(todosProjetosFuncionario);
   } catch (error) {
     throw new Error(error);
@@ -236,6 +239,94 @@ const desassociarProjeto = asyncHandler(async (req, res) => {
   }
 });
 
+const apontarHorarioInicialAM = asyncHandler(async (req, res) => {
+  const { _id } = req.funcionario;
+  const { hora, projetoId, tarefa, data } = req.body;
+  validateMongoDbId(projetoId);
+  try {
+    const verificarAssoc = await Associacao.findOne({
+      funcionario: _id,
+      projeto: projetoId,
+    });
+    if (verificarAssoc === null)
+      throw new Error("Este projeto não está associado ao funcionário");
+    const horaInicio = await Apontamento.create({
+      funcionario: _id,
+      projeto: projetoId,
+      data: data,
+      horainicio: hora,
+      tarefa: tarefa,
+    });
+    res.json(horaInicio);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const apontarHorarioFinalAM = asyncHandler(async (req, res) => {
+  const { hora, apontamentoId } = req.body;
+  validateMongoDbId(apontamentoId);
+  try {
+    const verificarApont = await Apontamento.findOne({ _id: apontamentoId });
+    if (verificarApont === null) throw new Error("Este apontamento não existe");
+    const horaFim = await Apontamento.findByIdAndUpdate(
+      { _id: apontamentoId },
+      { horafim: hora }
+    );
+    res.json(horaFim);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const apontarHorarioInicialPM = asyncHandler(async (req, res) => {
+  const { hora, apontamentoId } = req.body;
+  validateMongoDbId(apontamentoId);
+  try {
+    const verificarApont = await Apontamento.findOne({ _id: apontamentoId });
+    if (verificarApont === null) throw new Error("Este apontamento não existe");
+    const horaInicio = await Apontamento.findByIdAndUpdate(
+      { _id: apontamentoId },
+      { horainicio2: hora }
+    );
+    res.json(horaInicio);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const apontarHorarioFinalPM = asyncHandler(async (req, res) => {
+  const { hora, apontamentoId } = req.body;
+  validateMongoDbId(apontamentoId);
+  try {
+    const verificarApont = await Apontamento.findOne({ _id: apontamentoId });
+    if (verificarApont === null) throw new Error("Este apontamento não existe");
+    const horaFim = await Apontamento.findByIdAndUpdate(
+      { _id: apontamentoId },
+      { horafim2: hora },
+      { new: true }
+    );
+    res.json(horaFim);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const buscarApontamentosFuncionario = asyncHandler(async(req,res) => {
+  const {funcionarioId} = req.params;
+  validateMongoDbId(funcionarioId);
+  try {
+    const apontamentos = await Apontamento.find({funcionario: funcionarioId});
+    res.json(apontamentos);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const aprovacaoGestor = asyncHandler(async(req,res) => {
+  
+});
+
 module.exports = {
   criarFuncionario,
   updateFuncionario,
@@ -248,4 +339,9 @@ module.exports = {
   associarProjeto,
   buscarProjetos,
   desassociarProjeto,
+  apontarHorarioInicialAM,
+  apontarHorarioFinalAM,
+  apontarHorarioInicialPM,
+  apontarHorarioFinalPM,
+  buscarApontamentosFuncionario
 };

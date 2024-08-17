@@ -11,6 +11,11 @@ const {
   associarProjeto,
   buscarProjetos,
   desassociarProjeto,
+  apontarHorarioInicialAM,
+  apontarHorarioFinalAM,
+  apontarHorarioInicialPM,
+  apontarHorarioFinalPM,
+  buscarApontamentosFuncionario
 } = require("../controller/funcionarioCtrl");
 const router = express.Router();
 const { authMiddleware, isAdmin } = require("../middlewares/authMiddleware");
@@ -22,13 +27,18 @@ router.post(
   authMiddleware,
   associarProjeto
 );
+router.post("/horainicialam",authMiddleware, apontarHorarioInicialAM)
 
 router.get("/", authMiddleware, buscarFuncionarios);
+router.get("/apontamentos/:funcionarioId", authMiddleware, buscarApontamentosFuncionario);
 router.get("/todos-projetos/:funcionarioId", authMiddleware, isAdmin, buscarProjetos);
 router.get("/:id", buscarFuncionario);
 router.get("/refresh", handleRefreshToken);
 router.get("/logout", authMiddleware, logout);
 
+router.put("/horafinalam", authMiddleware, apontarHorarioFinalAM)
+router.put("/horainicialpm", authMiddleware, apontarHorarioInicialPM)
+router.put("/horafinalpm", authMiddleware, apontarHorarioFinalPM)
 router.put("/edit-funcionario/:id", authMiddleware, updateFuncionario);
 
 router.delete("/delete-associacao", authMiddleware, desassociarProjeto)
