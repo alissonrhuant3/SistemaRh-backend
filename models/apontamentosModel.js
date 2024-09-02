@@ -14,7 +14,6 @@ var apontamentoSchema = new mongoose.Schema({
   data: {
     type: String,
     required: true,
-    unique: true,
   },
   tarefa: {
     type: String,

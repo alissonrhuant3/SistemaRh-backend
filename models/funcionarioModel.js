@@ -111,6 +111,10 @@ var funcionarioSchema = new mongoose.Schema({
   refreshToken: {
     type: String,
   },
+  projetosvinculados: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Projeto"
+  }],
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,

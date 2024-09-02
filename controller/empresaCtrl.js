@@ -35,6 +35,7 @@ const updateEmpresa = asyncHandler(async (req, res) => {
         endereco: req?.body?.endereco,
         complemento: req?.body?.complemento,
         bairro: req?.body?.bairro,
+        uf: req?.body?.uf,
         cep: req?.body?.cep,
         cidade: req?.body?.cidade,
         telefone: req?.body?.telefone,

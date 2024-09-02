@@ -14,7 +14,7 @@ const cors = require("cors");
 dbConnect();
 
 app.use(morgan("dev"));
-app.use(cors());
+app.use(cors({credentials: true, origin: "http://localhost:3000"}));
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());

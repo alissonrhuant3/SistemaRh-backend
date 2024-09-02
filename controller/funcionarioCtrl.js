@@ -111,14 +111,15 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
     );
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
+      expires: new Date(new Date().getTime() + 1 * 60 * 60 * 1000),
     });
     res.json({
       _id: findUser?._id,
       nome: findUser?.nome,
       email: findUser?.email,
-      telefone: findUser?.telefone,
+      role: findUser?.perfil,
       token: generateToken(findUser?._id),
+      telefone: findUser?.telefone,
     });
   } else {
     throw new Error("Credenciais inválidas!");
@@ -127,7 +128,19 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
 
 const buscarFuncionarios = asyncHandler(async (req, res) => {
   try {
-    const funcionarios = await Funcionario.find();
+    const funcionarios = await Funcionario.find().populate("cod_empresa");
+    res.json(funcionarios);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const buscarFuncionariosEmpresa = asyncHandler(async (req, res) => {
+  const {cod_empresa, _id} = req.funcionario;
+  validateMongoDbId(_id);
+  validateMongoDbId(cod_empresa);
+  try {
+    const funcionarios = await Funcionario.find({cod_empresa: cod_empresa}).populate("cod_empresa");
     res.json(funcionarios);
   } catch (error) {
     throw new Error(error);
@@ -185,6 +198,7 @@ const logout = asyncHandler(async (req, res) => {
     httpOnly: true,
     secure: true,
   });
+  res.clearCookie("auth")
   return res.sendStatus(204); // bloqueado
 });
 
@@ -203,14 +217,18 @@ const buscarProjetos = asyncHandler(async (req, res) => {
 
 const associarProjeto = asyncHandler(async (req, res) => {
   const { projetoId, funcionarioId } = req.body;
-  const { _id } = req.funcionario;
+  const { _id, cod_empresa } = req.funcionario;
   validateMongoDbId(projetoId);
   validateMongoDbId(funcionarioId);
   try {
-    const associacao = await Associacao.create({
-      funcionario: funcionarioId,
-      projeto: projetoId,
-    });
+    const verificacaoPro = await Funcionario.find({projetosvinculados: projetoId});
+    if (verificacaoPro.length !== 0) throw new Error("Este projeto ja está vinculado ao funcionário!")
+    const verificacaoEmp = await Projeto.findById(projetoId)
+    
+    if (verificacaoEmp.empresa.equals(cod_empresa) == false) throw new Error("Este projeto não pertence a sua empresa!")
+    const associacao = await Funcionario.findByIdAndUpdate({_id:funcionarioId},
+      {$push: {projetosvinculados: projetoId}}, {new: true}
+  ).populate("projetosvinculados");
     await TrilhaAssoc.create({
       funcionario: funcionarioId,
       projeto: projetoId,
@@ -323,6 +341,20 @@ const buscarApontamentosFuncionario = asyncHandler(async (req, res) => {
   }
 });
 
+const buscarApontamentoDataFuncionario = asyncHandler(async (req, res) => {
+  const { _id } = req.funcionario;
+  const { data } = req.body;
+  if (data === undefined) throw new Error("Insira a data")
+  
+  validateMongoDbId(_id);
+  try {
+    const apontamentos = await Apontamento.find({ funcionario: _id, data: data });
+    res.json(apontamentos);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
 const aprovacaoGestor = asyncHandler(async (req, res) => {
   const {_id} = req.funcionario;
   const { apontamentoId, funcionarioId } = req.body;
@@ -354,5 +386,7 @@ module.exports = {
   apontarHorarioInicialPM,
   apontarHorarioFinalPM,
   buscarApontamentosFuncionario,
+  buscarApontamentoDataFuncionario,
   aprovacaoGestor,
+  buscarFuncionariosEmpresa,
 };

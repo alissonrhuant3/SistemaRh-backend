@@ -16,10 +16,12 @@ const {
   apontarHorarioInicialPM,
   apontarHorarioFinalPM,
   buscarApontamentosFuncionario,
-  aprovacaoGestor
+  aprovacaoGestor,
+  buscarApontamentoDataFuncionario,
+  buscarFuncionariosEmpresa
 } = require("../controller/funcionarioCtrl");
 const router = express.Router();
-const { authMiddleware, isAdmin } = require("../middlewares/authMiddleware");
+const { authMiddleware, isAdmin, isGestor } = require("../middlewares/authMiddleware");
 
 router.post("/registrar", authMiddleware, criarFuncionario);
 router.post("/login", loginUserCtrl);
@@ -30,8 +32,10 @@ router.post(
 );
 router.post("/horainicialam",authMiddleware, apontarHorarioInicialAM)
 
-router.get("/", authMiddleware, buscarFuncionarios);
+router.get("/", authMiddleware, isAdmin, buscarFuncionarios);
+router.get("/funcemp", authMiddleware, isGestor, buscarFuncionariosEmpresa);
 router.get("/apontamentos/:funcionarioId", authMiddleware, buscarApontamentosFuncionario);
+router.get("/apontamento", authMiddleware, buscarApontamentoDataFuncionario);
 router.get("/todos-projetos/:funcionarioId", authMiddleware, isAdmin, buscarProjetos);
 router.get("/:id", buscarFuncionario);
 router.get("/refresh", handleRefreshToken);

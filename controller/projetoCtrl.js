@@ -4,9 +4,14 @@ const Trilha = require("../models/trilhas/trilhaProjetoModel");
 const validateMongoDbId = require("../utils/validateMongodbId");
 
 const criarProjeto = asyncHandler(async (req, res) => {
-  const { _id } = req.funcionario;
+  const { _id, cod_empresa } = req.funcionario;
   try {
-    const novoProjeto = await Projeto.create(req.body);
+    const novoProjeto = await Projeto.create({
+      empresa: cod_empresa,
+      nome: req.body.nome,
+      descricao: req.body.descricao,
+      horasestimadas: req.body.horasestimadas,
+    });
     await Trilha.create({
       coduserinclusao: _id,
       projeto: novoProjeto.nome,
