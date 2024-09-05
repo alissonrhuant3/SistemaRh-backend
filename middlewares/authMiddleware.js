@@ -47,10 +47,10 @@ const isGestor = asyncHandler(async (req, res, next) => {
 const isEmpresa = asyncHandler(async (req, res, next) => {
   const { cpf } = req.funcionario;
   const user = await Funcionario.findOne({ cpf });
-  if (user.perfil !== "empresa/rh" || user.perfil !== "admin") {
-    throw new Error("Você não é empresa/rh!");
-  } else if (user.perfil === "empresa/rh" || user.perfil === "admin") {
+  if (user.perfil === "empresa/rh" || user.perfil === "admin") {
     next();
+  } else if  (user.perfil !== "empresa/rh" || user.perfil !== "admin") {
+    throw new Error("Você não é empresa/rh!");
   }
 });
 

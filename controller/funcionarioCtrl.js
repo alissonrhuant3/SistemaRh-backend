@@ -13,10 +13,39 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 
 const criarFuncionario = asyncHandler(async (req, res) => {
   const cpf = req.body.cpf;
-  const { _id } = req.funcionario;
+  const { _id, cod_empresa } = req.funcionario;
   const buscaFuncionario = await Funcionario.findOne({ cpf });
+  
   if (!buscaFuncionario) {
-    const novoFuncionario = await Funcionario.create(req.body);
+    const novoFuncionario = await Funcionario.create({
+      cod_empresa: cod_empresa,
+      nome: req.body.nome,
+      cpf: req.body.cpf,
+      rg: req.body.rg,
+      data_nascimento: req.body.data_nascimento,
+      data_admissao: req.body.data_admissao,
+      endereco: req.body.endereco,
+      complemento: req.body.complemento,
+      bairro: req.body.bairro,
+      cep: req.body.cep,
+      cidade: req.body.cidade,
+      uf: req.body.uf,
+      telefone: req.body.telefone,
+      email: req.body.email,
+      valor_remuneracao: req.body.valor_remuneracao,
+      valor_horaextra: req.body.valor_horaextra,
+      nome_banco: req.body.nome_banco,
+      numero_banco: req.body.numero_banco,
+      agencia: req.body.agencia,
+      conta: req.body.conta,
+      tipo_conta: req.body.tipo_conta,
+      pix: req.body.pix,
+      horario1: req.body.horario1,
+      horario2: req.body.horario2,
+      horaextra: req.body.horaextra,
+      password: req.body.password,
+      observacoes: req.body.observacoes
+    });
     await Trilha.create({
       coduserinclusao: _id,
       funcionario: novoFuncionario.nome,
@@ -34,6 +63,7 @@ const updateFuncionario = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
+    
     const updateFuncionario = await Funcionario.findByIdAndUpdate(
       { _id: id },
       {
@@ -88,6 +118,7 @@ const deletarFuncionario = asyncHandler(async (req, res) => {
     const deleteFuncionario = await Funcionario.findByIdAndDelete(id);
     await Trilha.create({
       coduserexclusao: _id,
+      funcionario: deleteFuncionario.nome,
     });
     res.json(deleteFuncionario);
   } catch (error) {
@@ -220,6 +251,7 @@ const associarProjeto = asyncHandler(async (req, res) => {
   const { _id, cod_empresa } = req.funcionario;
   validateMongoDbId(projetoId);
   validateMongoDbId(funcionarioId);
+  validateMongoDbId(_id)
   try {
     const verificacaoPro = await Funcionario.find({projetosvinculados: projetoId});
     if (verificacaoPro.length !== 0) throw new Error("Este projeto ja está vinculado ao funcionário!")
@@ -241,17 +273,29 @@ const associarProjeto = asyncHandler(async (req, res) => {
 });
 
 const desassociarProjeto = asyncHandler(async (req, res) => {
-  const { associacaoId } = req.body;
-  const { _id } = req.funcionario;
-  validateMongoDbId(associacaoId);
+  const { projetoId, funcionarioId } = req.body;
+  const { _id, cod_empresa } = req.funcionario;
+  validateMongoDbId(projetoId);
+  validateMongoDbId(funcionarioId)
+  validateMongoDbId(_id)
   try {
-    const desassociado = await Associacao.findByIdAndDelete(associacaoId);
+    const verificacaoFunc = await Funcionario.findById(_id);    
+    const verificacaoFunc2 = await Funcionario.findById(funcionarioId);
+    if (verificacaoFunc.cod_empresa.equals(verificacaoFunc2.cod_empresa) == false) throw new Error("Você não pode alterar dados de outra empresa!")
+    const verificacaoProjeto = await Projeto.findById(projetoId);
+    const verificacaoProjetoFuncionario = verificacaoFunc2.projetosvinculados.some((projetoId) =>
+      projetoId.equals(verificacaoProjeto._id) // Compara cada ObjectId do array com o ID do projeto
+    );
+    if (!verificacaoProjetoFuncionario) throw new Error("O projeto não está vinculado ao funcionário!")
+    const desassociacao = await Funcionario.findByIdAndUpdate({_id: funcionarioId},
+      {$pull: {projetosvinculados: projetoId}}, {new: true}
+    );
     await TrilhaAssoc.create({
-      funcionario: desassociado.funcionario,
-      projeto: desassociado.projeto,
+      funcionario: funcionarioId,
+      projeto: projetoId,
       coduserexclusao: _id,
     });
-    res.json(desassociado);
+    res.json(desassociacao);
   } catch (error) {
     throw new Error(error);
   }
@@ -259,23 +303,99 @@ const desassociarProjeto = asyncHandler(async (req, res) => {
 
 const apontarHorarioInicialAM = asyncHandler(async (req, res) => {
   const { _id } = req.funcionario;
-  const { hora, projetoId, tarefa, data } = req.body;
+  const { projetoId, tarefa } = req.body;
   validateMongoDbId(projetoId);
+
+  const currentDate = new Date();
+  const formattedDate = currentDate.toLocaleDateString("pt-BR");
+  const formattedTime = currentDate.toLocaleTimeString("pt-BR");
+  
+  const am1 = new Date();
+  const am2 = new Date();
+  const interval = new Date();
+  const pm1 = new Date();
+  const pm2 = new Date();
+  am1.setHours(9,30,0);
+  am2.setHours(12,10,0);
+  pm1.setHours(14,10,0);
+  pm2.setHours(18,0,0);
+  const timeInitAm = am1.toLocaleTimeString("pt-BR");
+  const timeFinalAm = am2.toLocaleTimeString("pt-BR");
+  const timeInitPm = pm1.toLocaleTimeString("pt-BR");
+  const timeFinalPm = pm2.toLocaleTimeString("pt-BR");
+  console.log(formattedTime);
+  
+ 
+
+  
   try {
-    const verificarAssoc = await Associacao.findOne({
-      funcionario: _id,
-      projeto: projetoId,
-    });
-    if (verificarAssoc === null)
-      throw new Error("Este projeto não está associado ao funcionário");
-    const horaInicio = await Apontamento.create({
-      funcionario: _id,
-      projeto: projetoId,
-      data: data,
-      horainicio: hora,
-      tarefa: tarefa,
-    });
-    res.json(horaInicio);
+    
+    if (formattedTime < timeInitAm) {
+        await Apontamento.create({
+          funcionario: _id,
+          projeto: projetoId,
+          data: formattedDate,
+          horainicio: formattedTime,
+          tarefa: tarefa,
+        });
+        console.log("1");
+        
+    } else if (formattedTime > timeInitAm && formattedTime < timeFinalAm) {
+      const verify = await Apontamento.findOne({funcionario: _id, data: formattedDate})
+      if (verify) {
+        await Apontamento.findByIdAndUpdate(verify._id, {
+          horainicio2: formattedTime
+        })
+        console.log("2");
+      } else {
+        await Apontamento.create({
+          funcionario: _id,
+          projeto: projetoId,
+          data: formattedDate,
+          horainicio2: formattedTime,
+          tarefa: tarefa,
+        })
+        console.log("3");
+      }
+    } else if (formattedTime > timeFinalAm && formattedTime < timeInitPm) {
+      const verify = await Apontamento.findOne({funcionario: _id, data: formattedDate})
+      if (verify) {
+        await Apontamento.findByIdAndUpdate(verify._id, {
+          horafim: formattedTime
+        })
+        console.log("4");
+      } else {
+        await Apontamento.create({
+          funcionario: _id,
+          projeto: projetoId,
+          data: formattedDate,
+          horafim: formattedTime,
+          tarefa: tarefa,
+        })
+        console.log("5");
+      }
+    } else if (formattedTime > timeInitPm && formattedTime < timeFinalPm) {
+      const verify = await Apontamento.findOne({funcionario: _id, data: formattedDate})
+      const verifyExist = await Apontamento.findOne({funcionario: _id, data: formattedDate, horafim2: {$ne: null}})
+      if (verifyExist) throw new Error("Você já bateu o ponto de saída!")
+      if (verify) {
+        await Apontamento.findByIdAndUpdate(verify._id, {
+          horafim2: formattedTime
+        })
+        console.log("6");
+      } else {
+        await Apontamento.create({
+          funcionario: _id,
+          projeto: projetoId,
+          data: formattedDate,
+          horafim2: formattedTime,
+          tarefa: tarefa,
+        })
+        console.log("7");
+      }
+    } else throw new Error("Você não pode bater ponto fora do horário")
+    
+    res.json("Registrado com sucesso!");
   } catch (error) {
     throw new Error(error);
   }

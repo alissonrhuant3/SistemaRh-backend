@@ -3,6 +3,7 @@ const Projeto = require("../models/projetoModel");
 const Trilha = require("../models/trilhas/trilhaEmpresaModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
+const Funcionario = require("../models/funcionarioModel");
 
 const criarEmpresa = asyncHandler(async (req, res) => {
   const cnpj = req.body.cnpj;

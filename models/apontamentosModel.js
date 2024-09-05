@@ -12,31 +12,30 @@ var apontamentoSchema = new mongoose.Schema({
     required: true,
   },
   data: {
-    type: String,
-    required: true,
+    type: Date,
+
   },
   tarefa: {
     type: String,
     required: true,
   },
   horainicio: {
-    type: Date,
-    required: true,
+    type: String,
   },
   horafim: {
-    type: Date,
+    type: String,
   },
   horainicio2: {
-    type: Date,
+    type: String,
   },
   horafim2: {
-    type: Date,
+    type: String,
   },
   heinicio: {
-    type: Date,
+    type: String,
   },
   hefim: {
-    type: Date,
+    type: String,
   },
   gestoraprova: {
     type: Boolean,
