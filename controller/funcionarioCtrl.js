@@ -253,8 +253,10 @@ const associarProjeto = asyncHandler(async (req, res) => {
   validateMongoDbId(funcionarioId);
   validateMongoDbId(_id)
   try {
-    const verificacaoPro = await Funcionario.find({projetosvinculados: projetoId});
-    if (verificacaoPro.length !== 0) throw new Error("Este projeto ja está vinculado ao funcionário!")
+    const verificacaoPro = await Funcionario.findOne({_id: funcionarioId,projetosvinculados: projetoId});
+    console.log(verificacaoPro);
+    
+    if (verificacaoPro !== null) throw new Error("Este projeto ja está vinculado ao funcionário!")
     const verificacaoEmp = await Projeto.findById(projetoId)
     
     if (verificacaoEmp.empresa.equals(cod_empresa) == false) throw new Error("Este projeto não pertence a sua empresa!")
@@ -329,7 +331,7 @@ const apontarHorarioInicialAM = asyncHandler(async (req, res) => {
 
   
   try {
-    
+    const verify = await Apontamento.findOne({funcionario: _id, data: formattedDate})
     if (formattedTime < timeInitAm) {
         await Apontamento.create({
           funcionario: _id,
@@ -340,30 +342,14 @@ const apontarHorarioInicialAM = asyncHandler(async (req, res) => {
         });
         console.log("1");
         
-    } else if (formattedTime > timeInitAm && formattedTime < timeFinalAm) {
-      const verify = await Apontamento.findOne({funcionario: _id, data: formattedDate})
-      if (verify) {
-        await Apontamento.findByIdAndUpdate(verify._id, {
-          horainicio2: formattedTime
-        })
-        console.log("2");
-      } else {
-        await Apontamento.create({
-          funcionario: _id,
-          projeto: projetoId,
-          data: formattedDate,
-          horainicio2: formattedTime,
-          tarefa: tarefa,
-        })
-        console.log("3");
-      }
-    } else if (formattedTime > timeFinalAm && formattedTime < timeInitPm) {
-      const verify = await Apontamento.findOne({funcionario: _id, data: formattedDate})
+    } else if (formattedTime > timeInitAm && formattedTime < timeFinalAm) {  
+      const verifyExist = await Apontamento.findOne({funcionario: _id, data: formattedDate, horainicio2: {$ne: null}})
+      if (verifyExist) throw new Error("Você já bateu a saída para o almoço")
       if (verify) {
         await Apontamento.findByIdAndUpdate(verify._id, {
           horafim: formattedTime
         })
-        console.log("4");
+        console.log("2");
       } else {
         await Apontamento.create({
           funcionario: _id,
@@ -372,10 +358,27 @@ const apontarHorarioInicialAM = asyncHandler(async (req, res) => {
           horafim: formattedTime,
           tarefa: tarefa,
         })
+        console.log("3");
+      }
+    } else if (formattedTime > timeFinalAm && formattedTime < timeInitPm) {
+      const verifyExist = await Apontamento.findOne({funcionario: _id, data: formattedDate, horainicio2: {$ne: null}})
+      if (verifyExist) throw new Error("Você já bateu o ponto de entrada tarde!")
+      if (verify) {
+        await Apontamento.findByIdAndUpdate(verify._id, {
+          horainicio2: formattedTime
+        })
+        console.log("4");
+      } else {
+        await Apontamento.create({
+          funcionario: _id,
+          projeto: projetoId,
+          data: formattedDate,
+          horainicio2: formattedTime,
+          tarefa: tarefa,
+        })
         console.log("5");
       }
     } else if (formattedTime > timeInitPm && formattedTime < timeFinalPm) {
-      const verify = await Apontamento.findOne({funcionario: _id, data: formattedDate})
       const verifyExist = await Apontamento.findOne({funcionario: _id, data: formattedDate, horafim2: {$ne: null}})
       if (verifyExist) throw new Error("Você já bateu o ponto de saída!")
       if (verify) {
