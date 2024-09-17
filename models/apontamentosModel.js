@@ -13,7 +13,12 @@ var apontamentoSchema = new mongoose.Schema({
   },
   data: {
     type: Date,
-
+    default: () => {
+      const now = new Date();
+      now.setHours(0,0,0,0);
+      return now;
+    },
+    required: true
   },
   tarefa: {
     type: String,

@@ -14,14 +14,14 @@ const {
 } = require("../middlewares/authMiddleware");
 const router = express.Router();
 
-router.get("/projetos", authMiddleware, buscarProjetos);
-router.get("/", authMiddleware, buscarEmpresas);
-router.get("/:id", authMiddleware, buscarEmpresa);
+router.get("/projetos", authMiddleware, isEmpresa, buscarProjetos);
+router.get("/", authMiddleware, isAdmin, buscarEmpresas);
+router.get("/:id", authMiddleware, isAdmin, buscarEmpresa);
 
-router.post("/registrar", authMiddleware, isEmpresa, criarEmpresa);
+router.post("/registrar", authMiddleware, isAdmin, criarEmpresa);
 
-router.put("/editar-empresa/:id", authMiddleware, updateEmpresa);
+router.put("/editar-empresa/:id", authMiddleware, isAdmin, updateEmpresa);
 
-router.delete("/delete-empresa/:id", authMiddleware, deletarEmpresa);
+router.delete("/delete-empresa/:id", authMiddleware, isAdmin, deletarEmpresa);
 
 module.exports = router;

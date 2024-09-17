@@ -18,26 +18,29 @@ const {
   buscarApontamentosFuncionario,
   aprovacaoGestor,
   buscarApontamentoDataFuncionario,
-  buscarFuncionariosEmpresa
+  buscarFuncionariosEmpresa,
+  buscarFuncionariosEmpresaGestor
 } = require("../controller/funcionarioCtrl");
 const router = express.Router();
-const { authMiddleware, isAdmin, isGestor } = require("../middlewares/authMiddleware");
+const { authMiddleware, isAdmin, isGestor, isEmpresa, isEmpresaANDGestor } = require("../middlewares/authMiddleware");
 
-router.post("/registrar", authMiddleware, criarFuncionario);
+router.post("/registrar", authMiddleware, isEmpresa, criarFuncionario);
 router.post("/login", loginUserCtrl);
 router.post(
   "/associar-projeto/",
   authMiddleware,
+  isEmpresa,
   associarProjeto
 );
 router.post("/horainicialam",authMiddleware, apontarHorarioInicialAM)
 
 router.get("/", authMiddleware, isAdmin, buscarFuncionarios);
-router.get("/funcemp", authMiddleware, isGestor, buscarFuncionariosEmpresa);
-router.get("/apontamentos/:funcionarioId", authMiddleware, buscarApontamentosFuncionario);
-router.get("/apontamento", authMiddleware, buscarApontamentoDataFuncionario);
-router.get("/todos-projetos/:funcionarioId", authMiddleware, isAdmin, buscarProjetos);
-router.get("/:id", buscarFuncionario);
+router.get("/funcemp", authMiddleware, isEmpresa, buscarFuncionariosEmpresa);
+router.get("/funcempg", authMiddleware, isGestor, buscarFuncionariosEmpresaGestor);
+router.get("/apontamentos/:funcionarioId", authMiddleware, isEmpresaANDGestor, buscarApontamentosFuncionario);
+router.get("/apontamento", authMiddleware, isEmpresa, buscarApontamentoDataFuncionario);
+router.get("/todos-projetos", authMiddleware, buscarProjetos);
+router.get("/:id",authMiddleware, isEmpresaANDGestor, buscarFuncionario);
 router.get("/refresh", handleRefreshToken);
 router.get("/logout", authMiddleware, logout);
 
@@ -45,9 +48,9 @@ router.put("/horafinalam", authMiddleware, apontarHorarioFinalAM)
 router.put("/horainicialpm", authMiddleware, apontarHorarioInicialPM)
 router.put("/horafinalpm", authMiddleware, apontarHorarioFinalPM)
 router.put("/gestoraprova", authMiddleware, aprovacaoGestor)
-router.put("/edit-funcionario/:id", authMiddleware, updateFuncionario);
+router.put("/delete-associacao", authMiddleware,isEmpresa, desassociarProjeto)
+router.put("/edit-funcionario/:id", authMiddleware, isEmpresa, updateFuncionario);
 
-router.delete("/delete-associacao", authMiddleware, desassociarProjeto)
-router.delete("/delete-funcionario/:id", authMiddleware, deletarFuncionario);
+router.delete("/delete-funcionario/:id", authMiddleware, isEmpresa, deletarFuncionario);
 
 module.exports = router;

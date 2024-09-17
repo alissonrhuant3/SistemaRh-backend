@@ -9,7 +9,7 @@ const authMiddleware = asyncHandler(async (req, res, next) => {
     try {
       if (token) {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const funcionario = await Funcionario.findById(decoded?.id);
+        const funcionario = await Funcionario.findById(decoded?.id.id);
         req.funcionario = funcionario; 
         next();
       }
@@ -54,4 +54,14 @@ const isEmpresa = asyncHandler(async (req, res, next) => {
   }
 });
 
-module.exports = { authMiddleware, isAdmin, isGestor, isEmpresa };
+const isEmpresaANDGestor = asyncHandler(async (req, res, next) => {
+  const { cpf } = req.funcionario;
+  const user = await Funcionario.findOne({ cpf });
+  if (user.perfil === "empresa/rh" || user.perfil === "admin" || user.perfil === "gestor") {
+    next();
+  } else if  (user.perfil !== "empresa/rh" || user.perfil !== "admin" || user.perfil !== "gestor") {
+    throw new Error("Você não tem permissão!");
+  }
+});
+
+module.exports = { authMiddleware, isAdmin, isGestor, isEmpresa, isEmpresaANDGestor };

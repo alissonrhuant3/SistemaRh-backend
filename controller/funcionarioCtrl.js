@@ -16,9 +16,14 @@ const criarFuncionario = asyncHandler(async (req, res) => {
   const { _id, cod_empresa } = req.funcionario;
   const buscaFuncionario = await Funcionario.findOne({ cpf });
   
+  if (req?.body?.perfil !== "empresa/rh" && req?.body?.perfil !== "funcionario" && req?.body?.perfil !== "gestor") {
+    throw new Error("Você não tem permissão");
+  }
+
   if (!buscaFuncionario) {
     const novoFuncionario = await Funcionario.create({
       cod_empresa: cod_empresa,
+      perfil: req.body.perfil,
       nome: req.body.nome,
       cpf: req.body.cpf,
       rg: req.body.rg,
@@ -44,6 +49,7 @@ const criarFuncionario = asyncHandler(async (req, res) => {
       horario2: req.body.horario2,
       horaextra: req.body.horaextra,
       password: req.body.password,
+      cod_gestor: req.body.cod_gestor,
       observacoes: req.body.observacoes
     });
     await Trilha.create({
@@ -59,11 +65,13 @@ const criarFuncionario = asyncHandler(async (req, res) => {
 
 const updateFuncionario = asyncHandler(async (req, res) => {
   const { _id } = req.funcionario;
-
   const { id } = req.params;
   validateMongoDbId(id);
+  
   try {
-    
+    if (req?.body?.perfil !== "empresa/rh" && req?.body?.perfil !== "funcionario" && req?.body?.perfil !== "gestor") {
+      throw new Error("Você não tem permissão");
+    }
     const updateFuncionario = await Funcionario.findByIdAndUpdate(
       { _id: id },
       {
@@ -128,7 +136,7 @@ const deletarFuncionario = asyncHandler(async (req, res) => {
 
 const loginUserCtrl = asyncHandler(async (req, res) => {
   const { cpf, password } = req.body;
-  const findUser = await Funcionario.findOne({ cpf });
+  const findUser = await Funcionario.findOne({ cpf }).populate("cod_empresa");
   if (findUser && (await findUser.isPasswordMatched(password))) {
     const refreshToken = await generateRefreshToken(findUser?._id);
     const updateuser = await Funcionario.findByIdAndUpdate(
@@ -144,12 +152,15 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
       httpOnly: true,
       expires: new Date(new Date().getTime() + 1 * 60 * 60 * 1000),
     });
+    console.log(findUser);
+    
     res.json({
       _id: findUser?._id,
       nome: findUser?.nome,
       email: findUser?.email,
       role: findUser?.perfil,
-      token: generateToken(findUser?._id),
+      empresa: findUser?.cod_empresa.razaosocial,
+      token: generateToken({id: findUser?._id, role: findUser?.perfil}),
       telefone: findUser?.telefone,
     });
   } else {
@@ -171,7 +182,19 @@ const buscarFuncionariosEmpresa = asyncHandler(async (req, res) => {
   validateMongoDbId(_id);
   validateMongoDbId(cod_empresa);
   try {
-    const funcionarios = await Funcionario.find({cod_empresa: cod_empresa}).populate("cod_empresa");
+    const funcionarios = await Funcionario.find({cod_empresa: cod_empresa}).populate("cod_empresa").populate("cod_gestor");
+    res.json(funcionarios);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const buscarFuncionariosEmpresaGestor = asyncHandler(async (req, res) => {
+  const {cod_empresa, _id} = req.funcionario;
+  validateMongoDbId(_id);
+  validateMongoDbId(cod_empresa);
+  try {
+    const funcionarios = await Funcionario.find({cod_empresa: cod_empresa, cod_gestor: _id}).populate("cod_empresa").populate("cod_gestor");
     res.json(funcionarios);
   } catch (error) {
     throw new Error(error);
@@ -234,13 +257,14 @@ const logout = asyncHandler(async (req, res) => {
 });
 
 const buscarProjetos = asyncHandler(async (req, res) => {
-  const { funcionarioId } = req.params;
-  validateMongoDbId(funcionarioId);
+  const { _id } = req.funcionario;
+  console.log(_id);
+  
   try {
-    const todosProjetosFuncionario = await Associacao.find({
-      funcionario: funcionarioId,
-    });
-    res.json(todosProjetosFuncionario);
+    const todosProjetosFuncionario = await Funcionario.findOne({
+      _id: _id,
+    }).populate("projetosvinculados");
+    res.json(todosProjetosFuncionario.projetosvinculados);
   } catch (error) {
     throw new Error(error);
   }
@@ -309,8 +333,9 @@ const apontarHorarioInicialAM = asyncHandler(async (req, res) => {
   validateMongoDbId(projetoId);
 
   const currentDate = new Date();
-  const formattedDate = currentDate.toLocaleDateString("pt-BR");
-  const formattedTime = currentDate.toLocaleTimeString("pt-BR");
+  currentDate.setHours(0,0,0,0);
+  const currentDateTime = new Date();
+  const formattedTime = currentDateTime.toLocaleTimeString("pt-BR");
   
   const am1 = new Date();
   const am2 = new Date();
@@ -325,25 +350,20 @@ const apontarHorarioInicialAM = asyncHandler(async (req, res) => {
   const timeFinalAm = am2.toLocaleTimeString("pt-BR");
   const timeInitPm = pm1.toLocaleTimeString("pt-BR");
   const timeFinalPm = pm2.toLocaleTimeString("pt-BR");
-  console.log(formattedTime);
-  
- 
 
-  
   try {
-    const verify = await Apontamento.findOne({funcionario: _id, data: formattedDate})
+    const verify = await Apontamento.findOne({funcionario: _id, data: currentDate})
     if (formattedTime < timeInitAm) {
         await Apontamento.create({
           funcionario: _id,
           projeto: projetoId,
-          data: formattedDate,
           horainicio: formattedTime,
           tarefa: tarefa,
         });
         console.log("1");
         
     } else if (formattedTime > timeInitAm && formattedTime < timeFinalAm) {  
-      const verifyExist = await Apontamento.findOne({funcionario: _id, data: formattedDate, horainicio2: {$ne: null}})
+      const verifyExist = await Apontamento.findOne({funcionario: _id, data: currentDate, horainicio2: {$ne: null}})
       if (verifyExist) throw new Error("Você já bateu a saída para o almoço")
       if (verify) {
         await Apontamento.findByIdAndUpdate(verify._id, {
@@ -354,14 +374,13 @@ const apontarHorarioInicialAM = asyncHandler(async (req, res) => {
         await Apontamento.create({
           funcionario: _id,
           projeto: projetoId,
-          data: formattedDate,
           horafim: formattedTime,
           tarefa: tarefa,
         })
         console.log("3");
       }
     } else if (formattedTime > timeFinalAm && formattedTime < timeInitPm) {
-      const verifyExist = await Apontamento.findOne({funcionario: _id, data: formattedDate, horainicio2: {$ne: null}})
+      const verifyExist = await Apontamento.findOne({funcionario: _id, data: currentDate, horainicio2: {$ne: null}})
       if (verifyExist) throw new Error("Você já bateu o ponto de entrada tarde!")
       if (verify) {
         await Apontamento.findByIdAndUpdate(verify._id, {
@@ -372,14 +391,13 @@ const apontarHorarioInicialAM = asyncHandler(async (req, res) => {
         await Apontamento.create({
           funcionario: _id,
           projeto: projetoId,
-          data: formattedDate,
           horainicio2: formattedTime,
           tarefa: tarefa,
         })
         console.log("5");
       }
     } else if (formattedTime > timeInitPm && formattedTime < timeFinalPm) {
-      const verifyExist = await Apontamento.findOne({funcionario: _id, data: formattedDate, horafim2: {$ne: null}})
+      const verifyExist = await Apontamento.findOne({funcionario: _id, data: currentDate, horafim2: {$ne: null}})
       if (verifyExist) throw new Error("Você já bateu o ponto de saída!")
       if (verify) {
         await Apontamento.findByIdAndUpdate(verify._id, {
@@ -390,7 +408,6 @@ const apontarHorarioInicialAM = asyncHandler(async (req, res) => {
         await Apontamento.create({
           funcionario: _id,
           projeto: projetoId,
-          data: formattedDate,
           horafim2: formattedTime,
           tarefa: tarefa,
         })
@@ -457,7 +474,7 @@ const buscarApontamentosFuncionario = asyncHandler(async (req, res) => {
   const { funcionarioId } = req.params;
   validateMongoDbId(funcionarioId);
   try {
-    const apontamentos = await Apontamento.find({ funcionario: funcionarioId });
+    const apontamentos = await Apontamento.find({ funcionario: funcionarioId }).sort({data: -1}).populate("funcionario").populate("projeto");
     res.json(apontamentos);
   } catch (error) {
     throw new Error(error);
@@ -482,9 +499,12 @@ const aprovacaoGestor = asyncHandler(async (req, res) => {
   const {_id} = req.funcionario;
   const { apontamentoId, funcionarioId } = req.body;
   validateMongoDbId(apontamentoId);
+  validateMongoDbId(funcionarioId);
   try {
-    const verificarGestor = await Funcionario.findOne({funcionario: funcionarioId, cod_gestor: _id});
+    const verificarGestor = await Funcionario.findOne({_id: funcionarioId, cod_gestor: _id});
     if(verificarGestor === null) throw new Error("Você não é gestor do funcionário")
+    const verificarApontamento = await Apontamento.findOne({_id: apontamentoId});
+    if(verificarApontamento.gestoraprova == true) throw new Error("Este apontamento já foi aprovado")
     const aprovacao = await Apontamento.findByIdAndUpdate({_id: apontamentoId},{gestoraprova: true},{new: true});
     res.json(aprovacao);
   } catch (error) {
@@ -512,4 +532,5 @@ module.exports = {
   buscarApontamentoDataFuncionario,
   aprovacaoGestor,
   buscarFuncionariosEmpresa,
+  buscarFuncionariosEmpresaGestor
 };

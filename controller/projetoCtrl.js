@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const Projeto = require("../models/projetoModel");
+const Funcionario = require("../models/funcionarioModel");
 const Trilha = require("../models/trilhas/trilhaProjetoModel");
 const validateMongoDbId = require("../utils/validateMongodbId");
 
@@ -76,6 +77,9 @@ const deletarProjeto = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
+    const verify = await Funcionario.find({projetosvinculados: id})
+    if (verify.length !== 0) throw new Error("Este projeto está vinculado a um funcionário");
+    
     const deleteProjeto = await Projeto.findByIdAndDelete(id);
     await Trilha.create({
       coduserexclusao: _id,
