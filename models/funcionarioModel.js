@@ -114,6 +114,9 @@ var funcionarioSchema = new mongoose.Schema(
     refreshToken: {
       type: String,
     },
+    contratoPdfUrl: {
+      type: String,
+    },
     projetosvinculados: [
       {
         type: mongoose.Schema.Types.ObjectId,

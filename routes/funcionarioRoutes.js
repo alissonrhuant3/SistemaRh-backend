@@ -19,12 +19,15 @@ const {
   aprovacaoGestor,
   buscarApontamentoDataFuncionario,
   buscarFuncionariosEmpresa,
-  buscarFuncionariosEmpresaGestor
+  buscarFuncionariosEmpresaGestor,
+  downloadPdf,
+  
 } = require("../controller/funcionarioCtrl");
 const router = express.Router();
 const { authMiddleware, isAdmin, isGestor, isEmpresa, isEmpresaANDGestor } = require("../middlewares/authMiddleware");
+const upload = require("../middlewares/upload");
 
-router.post("/registrar", authMiddleware, isEmpresa, criarFuncionario);
+router.post("/registrar", authMiddleware, isEmpresa, upload.single("contratoPdf"), criarFuncionario);
 router.post("/login", loginUserCtrl);
 router.post(
   "/associar-projeto/",
@@ -36,6 +39,7 @@ router.post("/horainicialam",authMiddleware, apontarHorarioInicialAM)
 
 router.get("/", authMiddleware, isAdmin, buscarFuncionarios);
 router.get("/funcemp", authMiddleware, isEmpresa, buscarFuncionariosEmpresa);
+router.get("/download/:funcionarioId", authMiddleware, isEmpresa, downloadPdf)
 router.get("/funcempg", authMiddleware, isGestor, buscarFuncionariosEmpresaGestor);
 router.get("/apontamentos/:funcionarioId", authMiddleware, isEmpresaANDGestor, buscarApontamentosFuncionario);
 router.get("/apontamento", authMiddleware, isEmpresa, buscarApontamentoDataFuncionario);

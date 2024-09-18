@@ -10,6 +10,9 @@ const TrilhaAssoc = require("../models/trilhas/trilhaAssociacaoModel");
 const asyncHandler = require("express-async-handler");
 const { generateToken } = require("../config/jwtToken");
 const validateMongoDbId = require("../utils/validateMongodbId");
+const multer = require("multer");
+const path = require("path")
+const upload = require("../middlewares/upload")
 
 const criarFuncionario = asyncHandler(async (req, res) => {
   const cpf = req.body.cpf;
@@ -20,7 +23,11 @@ const criarFuncionario = asyncHandler(async (req, res) => {
     throw new Error("Você não tem permissão");
   }
 
-  if (!buscaFuncionario) {
+  if (buscaFuncionario) throw new Error("Funcionário já existe!");
+
+    // Caminho do PDF (caso tenha sido feito o upload)
+    const contratoPdfUrl = req.file ? req.file.path : null;
+
     const novoFuncionario = await Funcionario.create({
       cod_empresa: cod_empresa,
       perfil: req.body.perfil,
@@ -50,7 +57,8 @@ const criarFuncionario = asyncHandler(async (req, res) => {
       horaextra: req.body.horaextra,
       password: req.body.password,
       cod_gestor: req.body.cod_gestor,
-      observacoes: req.body.observacoes
+      observacoes: req.body.observacoes,
+      contratoPdfUrl : contratoPdfUrl
     });
     await Trilha.create({
       coduserinclusao: _id,
@@ -58,9 +66,6 @@ const criarFuncionario = asyncHandler(async (req, res) => {
       datahorainclusao: novoFuncionario.createdAt,
     });
     res.json(novoFuncionario);
-  } else {
-    throw new Error("Funcionário já existe!");
-  }
 });
 
 const updateFuncionario = asyncHandler(async (req, res) => {
@@ -512,6 +517,23 @@ const aprovacaoGestor = asyncHandler(async (req, res) => {
   }
 });
 
+const downloadPdf = asyncHandler(async (req,res) => {
+  const {funcionarioId} = req.params;
+  try {
+    const funcionario = await Funcionario.findById(funcionarioId);
+    if(!funcionario) res.status(404).json({message: "Funcionário não encontrado"});
+    const filePath = funcionario.contratoPdfUrl;
+    if(!funcionario) res.status(404).json({message: "Arquivo não encontrado"});
+
+    const absolutePath = path.resolve(filePath);
+
+    res.sendFile(absolutePath);
+  } catch (error) {
+    console.error("Erro ao baixar o arquivo", error);
+    throw new Error(error)
+  }
+})  
+
 module.exports = {
   criarFuncionario,
   updateFuncionario,
@@ -532,5 +554,6 @@ module.exports = {
   buscarApontamentoDataFuncionario,
   aprovacaoGestor,
   buscarFuncionariosEmpresa,
-  buscarFuncionariosEmpresaGestor
+  buscarFuncionariosEmpresaGestor,
+  downloadPdf
 };
