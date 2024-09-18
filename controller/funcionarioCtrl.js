@@ -13,6 +13,7 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 const multer = require("multer");
 const path = require("path")
 const upload = require("../middlewares/upload")
+const bcrypt = require("bcrypt");
 
 const criarFuncionario = asyncHandler(async (req, res) => {
   const cpf = req.body.cpf;
@@ -260,6 +261,28 @@ const logout = asyncHandler(async (req, res) => {
   res.clearCookie("auth")
   return res.sendStatus(204); // bloqueado
 });
+
+const updatePassword = asyncHandler(async (req,res) => {
+  const {_id} = req.funcionario;
+  const {password, newpassword} = req.body;
+  validateMongoDbId(_id);
+  try {
+  const funcionario = await Funcionario.findById(_id);
+  if(!funcionario) return res.status(404).json({message: "Funcionário não encontrado"})
+  const passwordMatched = await bcrypt.compare(password, funcionario.password)
+  if(!passwordMatched) return res.status(401).json({message: "Senha incorreta"})
+
+  if( newpassword ) {
+    funcionario.password = newpassword;
+    const updatedPassword = await funcionario.save();
+    res.json(updatedPassword);  
+  } else {
+    res.json(funcionario);
+  }
+  } catch (error) {
+    throw new Error(error);
+  }
+})
 
 const buscarProjetos = asyncHandler(async (req, res) => {
   const { _id } = req.funcionario;
@@ -555,5 +578,6 @@ module.exports = {
   aprovacaoGestor,
   buscarFuncionariosEmpresa,
   buscarFuncionariosEmpresaGestor,
-  downloadPdf
+  downloadPdf,
+  updatePassword
 };

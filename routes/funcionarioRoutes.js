@@ -21,6 +21,7 @@ const {
   buscarFuncionariosEmpresa,
   buscarFuncionariosEmpresaGestor,
   downloadPdf,
+  updatePassword,
   
 } = require("../controller/funcionarioCtrl");
 const router = express.Router();
@@ -49,6 +50,7 @@ router.get("/refresh", handleRefreshToken);
 router.get("/logout", authMiddleware, logout);
 
 router.put("/horafinalam", authMiddleware, apontarHorarioFinalAM)
+router.put("/password", authMiddleware, updatePassword)
 router.put("/horainicialpm", authMiddleware, apontarHorarioInicialPM)
 router.put("/horafinalpm", authMiddleware, apontarHorarioFinalPM)
 router.put("/gestoraprova", authMiddleware, aprovacaoGestor)
