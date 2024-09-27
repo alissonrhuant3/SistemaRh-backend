@@ -30,7 +30,7 @@ const criarFuncionario = asyncHandler(async (req, res) => {
     const contratoPdfUrl = req.file ? req.file.path : null;
 
     const novoFuncionario = await Funcionario.create({
-      cod_empresa: cod_empresa,
+      cod_empresa: req.body.cod_empresa,
       perfil: req.body.perfil,
       nome: req.body.nome,
       cpf: req.body.cpf,
