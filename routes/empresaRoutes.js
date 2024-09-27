@@ -18,7 +18,7 @@ router.get("/projetos", authMiddleware, isEmpresa, buscarProjetos);
 router.get("/", authMiddleware, isAdmin, buscarEmpresas);
 router.get("/:id", authMiddleware, isAdmin, buscarEmpresa);
 
-router.post("/registrar", criarEmpresa);
+router.post("/registrar", authMiddleware, isAdmin, criarEmpresa);
 
 router.put("/editar-empresa/:id", authMiddleware, isAdmin, updateEmpresa);
 

@@ -28,7 +28,7 @@ const router = express.Router();
 const { authMiddleware, isAdmin, isGestor, isEmpresa, isEmpresaANDGestor } = require("../middlewares/authMiddleware");
 const upload = require("../middlewares/upload");
 
-router.post("/registrar", upload.single("contratoPdf"), criarFuncionario);
+router.post("/registrar", authMiddleware, isEmpresa, upload.single("contratoPdf"), criarFuncionario);
 router.post("/login", loginUserCtrl);
 router.post(
   "/associar-projeto/",

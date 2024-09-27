@@ -17,12 +17,12 @@ const bcrypt = require("bcrypt");
 
 const criarFuncionario = asyncHandler(async (req, res) => {
   const cpf = req.body.cpf;
-  // const { _id, cod_empresa } = req.funcionario;
+  const { _id, cod_empresa } = req.funcionario;
   const buscaFuncionario = await Funcionario.findOne({ cpf });
   
-  // if (req?.body?.perfil !== "empresa/rh" && req?.body?.perfil !== "funcionario" && req?.body?.perfil !== "gestor") {
-  //   throw new Error("Você não tem permissão");
-  // }
+  if (req?.body?.perfil !== "empresa/rh" && req?.body?.perfil !== "funcionario" && req?.body?.perfil !== "gestor") {
+    throw new Error("Você não tem permissão");
+  }
 
   if (buscaFuncionario) throw new Error("Funcionário já existe!");
 
@@ -30,7 +30,7 @@ const criarFuncionario = asyncHandler(async (req, res) => {
     const contratoPdfUrl = req.file ? req.file.path : null;
 
     const novoFuncionario = await Funcionario.create({
-      cod_empresa: req.body.cod_empresa,
+      cod_empresa: cod_empresa,
       perfil: req.body.perfil,
       nome: req.body.nome,
       cpf: req.body.cpf,
@@ -61,11 +61,11 @@ const criarFuncionario = asyncHandler(async (req, res) => {
       observacoes: req.body.observacoes,
       contratoPdfUrl : contratoPdfUrl
     });
-    // await Trilha.create({
-    //   coduserinclusao: _id,
-    //   funcionario: novoFuncionario.nome,
-    //   datahorainclusao: novoFuncionario.createdAt,
-    // });
+    await Trilha.create({
+      coduserinclusao: _id,
+      funcionario: novoFuncionario.nome,
+      datahorainclusao: novoFuncionario.createdAt,
+    });
     res.json(novoFuncionario);
 });
 
