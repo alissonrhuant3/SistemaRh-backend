@@ -141,8 +141,7 @@ funcionarioSchema.pre("save", async function (next) {
   next();
 });
 funcionarioSchema.methods.isPasswordMatched = async function (enteredPassword) {
-  const match = await bcrypt.compare(enteredPassword, this.password);
-  return true;
+  return await bcrypt.compare(enteredPassword, this.password);
 };
 funcionarioSchema.methods.createPasswordResetToken = async function () {};
 

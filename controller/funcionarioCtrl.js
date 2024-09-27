@@ -167,6 +167,7 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
       nome: findUser?.nome,
       email: findUser?.email,
       role: findUser?.perfil,
+      empresa: findUser?.cod_empresa?.razaosocial,
       token: generateToken({id: findUser?._id, role: findUser?.perfil}),
       telefone: findUser?.telefone,
     });
