@@ -20,9 +20,9 @@ const criarFuncionario = asyncHandler(async (req, res) => {
   // const { _id, cod_empresa } = req.funcionario;
   const buscaFuncionario = await Funcionario.findOne({ cpf });
   
-  if (req?.body?.perfil !== "empresa/rh" && req?.body?.perfil !== "funcionario" && req?.body?.perfil !== "gestor") {
-    throw new Error("Você não tem permissão");
-  }
+  // if (req?.body?.perfil !== "empresa/rh" && req?.body?.perfil !== "funcionario" && req?.body?.perfil !== "gestor") {
+  //   throw new Error("Você não tem permissão");
+  // }
 
   if (buscaFuncionario) throw new Error("Funcionário já existe!");
 
