@@ -14,7 +14,7 @@ const cors = require("cors");
 dbConnect();
 
 app.use(morgan("dev"));
-app.use(cors({credentials: true, origin: "http://localhost:3000"}));
+app.use(cors({credentials: true, origin: "https://sitemahr.netlify.app"}));
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
