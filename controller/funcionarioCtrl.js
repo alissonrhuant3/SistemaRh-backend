@@ -17,7 +17,7 @@ const bcrypt = require("bcrypt");
 
 const criarFuncionario = asyncHandler(async (req, res) => {
   const cpf = req.body.cpf;
-  const { _id, cod_empresa } = req.funcionario;
+  // const { _id, cod_empresa } = req.funcionario;
   const buscaFuncionario = await Funcionario.findOne({ cpf });
   
   if (req?.body?.perfil !== "empresa/rh" && req?.body?.perfil !== "funcionario" && req?.body?.perfil !== "gestor") {
@@ -61,11 +61,11 @@ const criarFuncionario = asyncHandler(async (req, res) => {
       observacoes: req.body.observacoes,
       contratoPdfUrl : contratoPdfUrl
     });
-    await Trilha.create({
-      coduserinclusao: _id,
-      funcionario: novoFuncionario.nome,
-      datahorainclusao: novoFuncionario.createdAt,
-    });
+    // await Trilha.create({
+    //   coduserinclusao: _id,
+    //   funcionario: novoFuncionario.nome,
+    //   datahorainclusao: novoFuncionario.createdAt,
+    // });
     res.json(novoFuncionario);
 });
 
