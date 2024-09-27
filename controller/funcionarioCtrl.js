@@ -142,10 +142,8 @@ const deletarFuncionario = asyncHandler(async (req, res) => {
 
 const loginUserCtrl = asyncHandler(async (req, res) => {
   const { cpf, password } = req.body;
-  console.log(cpf, password);
   
   const findUser = await Funcionario.findOne({ cpf }).populate("cod_empresa");
-  console.log(findUser);
   
   if (findUser && (await findUser.isPasswordMatched(password))) {
     const refreshToken = await generateRefreshToken(findUser?._id);
@@ -169,7 +167,6 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
       nome: findUser?.nome,
       email: findUser?.email,
       role: findUser?.perfil,
-      empresa: findUser?.cod_empresa.razaosocial,
       token: generateToken({id: findUser?._id, role: findUser?.perfil}),
       telefone: findUser?.telefone,
     });
