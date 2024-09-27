@@ -25,6 +25,8 @@ const authMiddleware = asyncHandler(async (req, res, next) => {
 });
 
 const isAdmin = asyncHandler(async (req, res, next) => {
+  console.log(req);
+  
   const { cpf } = req.funcionario;
   const adminUser = await Funcionario.findOne({ cpf });
   if (adminUser.perfil !== "admin") {
